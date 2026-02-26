@@ -3,6 +3,9 @@ import { Injectable } from '@angular/core';
 import { AlertService } from 'app/core/alert/alert.service';
 import { Dates } from 'app/core/utils/dates';
 
+/** rxjs Imports */
+import { BehaviorSubject, Observable } from 'rxjs';
+
 /** Environment Imports */
 import { environment } from '../../environments/environment';
 
@@ -21,8 +24,15 @@ export class SettingsService {
   minAllowedDate = new Date(1950, 0, 1);
   maxAllowedDate = new Date(2100, 0, 1);
 
+  /** Subject for tenant logo changes */
+  private tenantLogoSubject = new BehaviorSubject<string>('');
+  public tenantLogo$: Observable<string> = this.tenantLogoSubject.asObservable();
+
   constructor(private alertService: AlertService,
-    private dateUtils: Dates) { }
+    private dateUtils: Dates) {
+    // Initialize with current tenant logo
+    this.tenantLogoSubject.next(this.getTenantLogo());
+  }
 
   /**
    * Sets date format setting throughout the app.
@@ -86,6 +96,8 @@ export class SettingsService {
    */
   setTenantIdentifier(tenantIdentifier: string) {
     localStorage.setItem('mifosXTenantIdentifier', tenantIdentifier);
+    // Emit new logo when tenant changes
+    this.tenantLogoSubject.next(this.getTenantLogo());
   }
 
   /**
@@ -254,6 +266,20 @@ export class SettingsService {
 
   get themeDarkEnabled() {
     return JSON.parse(localStorage.getItem('mifosXThemeDarkEnabled'));
+  }
+
+  /**
+   * Returns logo path based on current tenant identifier
+   */
+  getTenantLogo(): string {
+    const tenantId = this.tenantIdentifier;
+    const logoMap: { [key: string]: string } = {
+      'cfh': 'assets/images/mifos_lg-logo.png',
+      'montify': 'assets/images/montify-logo.png',
+      'payments': 'assets/images/mifos_lg-logo.png',
+    };
+    // Return tenant-specific logo or default
+    return logoMap[tenantId] || 'assets/images/mifos_lg-logo.png';
   }
 
 }

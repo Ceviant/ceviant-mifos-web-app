@@ -26,6 +26,7 @@ import { SettingsService } from 'app/settings/settings.service';
 export class LoginComponent implements OnInit, OnDestroy {
 
   public environment = environment;
+  tenantLogo: string;
 
   /** True if password requires a reset. */
   resetPassword = false;
@@ -33,6 +34,8 @@ export class LoginComponent implements OnInit, OnDestroy {
   twoFactorAuthenticationRequired = false;
   /** Subscription to alerts. */
   alert$: Subscription;
+  /** Subscription to tenant logo changes. */
+  tenantLogoSubscription: Subscription;
 
   /**
    * @param {AlertService} alertService Alert Service.
@@ -43,9 +46,12 @@ export class LoginComponent implements OnInit, OnDestroy {
       private router: Router) { }
 
   /**
-   * Subscribes to alert event of alert service.
+   * Subscribes to alert event of alert service and tenant logo changes.
    */
   ngOnInit() {
+    this.tenantLogoSubscription = this.settingsService.tenantLogo$.subscribe((logo: string) => {
+      this.tenantLogo = logo;
+    });
     this.alert$ = this.alertService.alertEvent.subscribe((alertEvent: Alert) => {
       const alertType = alertEvent.type;
       if (alertType === 'Password Expired') {
@@ -63,10 +69,13 @@ export class LoginComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Unsubscribes from alerts.
+   * Unsubscribes from alerts and logo changes.
    */
   ngOnDestroy() {
     this.alert$.unsubscribe();
+    if (this.tenantLogoSubscription) {
+      this.tenantLogoSubscription.unsubscribe();
+    }
   }
 
   reloadSettings(): void {

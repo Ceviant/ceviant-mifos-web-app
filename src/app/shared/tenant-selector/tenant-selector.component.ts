@@ -32,6 +32,8 @@ export class TenantSelectorComponent implements OnInit {
 
   setTenantIdentifier(): void {
     this.settingsService.setTenantIdentifier(this.tenantSelector.value);
+    // Optionally reload to apply theme and other tenant-specific settings
+    // window.location.reload();
   }
 
   allowSelection(): boolean {
